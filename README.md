@@ -1,49 +1,76 @@
-# Svelte + Vite
-
-This template should help get you started developing with Svelte in Vite.
-
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
-
-## Need an official Svelte framework?
-
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
-
-## Technical considerations
-
-**Why use this over SvelteKit?**
-
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
-  `vite dev` and `vite build` wouldn't work in a SvelteKit environment, for example.
-
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-app` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
-
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `checkJs` in the JS template?**
-
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
-```
 # vite-issue-repo
+
+## Steps to reproduce
+1. `npm run build`.
+2. Serve `index.html` (I'm using nginx).
+
+## Expected behaviour
+You can navigate smoothly and SVGs will render.
+
+## Actual behaviour
+- You can navigate to `/index` without problems, but if you go directly (through URL) to `/one` or `/two` it will fail.
+- You can navigate to `/index` then to `/one` and then to `/two` (through clicking links) without problems, but not from `/index` to `/two` directly.
+
+## Error
+```
+FaIcon.svelte:8 Uncaught (in promise) TypeError: Cannot read property 'icon' of undefined
+    at Object.$$self.$$.update (FaIcon.svelte:8)
+    at init$1 (index.mjs:1671)
+    at new FaIcon (FaIcon.svelte:12)
+    at create_fragment (two.e78d4eea.js:8)
+    at init$1 (index.mjs:1675)
+    at new Two (two.svelte:8)
+    at Array.create_default_slot (Route.svelte:114)
+    at create_slot (index.mjs:61)
+    at create_fragment$3 (index.js:174)
+    at init$1 (index.mjs:1675)
+```
+
+## Weird bundling?
+Taking a look at the `dist/assets` folder I can see that `faPlusCircle` and `faMinusCircle` are pseudo-empty chunks:
+
+```
+$ cat faPlusCircle.ef7d87a6.js faMinusCircle.3d152943.js
+var faPlusCircle = {};
+export { faPlusCircle as f };
+//# sourceMappingURL=faPlusCircle.ef7d87a6.js.map
+var faMinusCircle = {};
+export { faMinusCircle as f };
+//# sourceMappingURL=faMinusCircle.3d152943.js.map
+```
+
+And that some of the bundled pages (for example in `/index`, where the icon works) have the import concatenated (and also imported):
+
+```
+import { f as faMinusCircle } from "./faMinusCircle.3d152943.js";
+import { F as FaIcon } from "./FaIcon.2537ee2b.js";
+(function(exports) {
+  Object.defineProperty(exports, "__esModule", { value: true });
+  var prefix = "fas";
+  var iconName = "minus-circle";
+  var width = 512;
+  var height = 512;
+  var ligatures = [];
+  var unicode = "f056";
+  var svgPathData = "M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zM124 296c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h264c6.6 0 12 5.4 12 12v56c0 6.6-5.4 12-12 12H124z";
+  exports.definition = {
+    prefix,
+    iconName,
+    icon: [
+      width,
+      height,
+      ligatures,
+      unicode,
+      svgPathData
+    ]
+  };
+  exports.faMinusCircle = exports.definition;
+  exports.prefix = prefix;
+  exports.iconName = iconName;
+  exports.width = width;
+  exports.height = height;
+  exports.ligatures = ligatures;
+  exports.unicode = unicode;
+  exports.svgPathData = svgPathData;
+})(faMinusCircle);
+```
