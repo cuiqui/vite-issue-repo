@@ -1,8 +1,10 @@
 # vite-issue-repo
 
 ## Steps to reproduce
-1. `npm run build`.
-2. Serve `index.html` (I'm using nginx).
+1. Clone.
+2. `npm install`.
+3. `npm run build`.
+4. Serve `index.html` (I'm using nginx).
 
 ## Expected behaviour
 You can navigate smoothly and SVGs will render.
