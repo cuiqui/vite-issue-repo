@@ -1,8 +1,5 @@
 <script>
-    import { faMinusCircle } from "@fortawesome/free-solid-svg-icons/faMinusCircle";
-    import FaIcon from '../lib/FaIcon.svelte';
+    import { params } from '@roxi/routify';
 </script>
 
-Index page that uses faMinusCircle:
-
-<FaIcon icon={faMinusCircle} />
+{$params}
